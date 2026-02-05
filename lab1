@@ -1,0 +1,34 @@
+# 1
+my_list = ["apple", "banana", "cherry", "apple", "orange", "banana", "grape", "cherry", "kiwi", "apple"]
+print("1. Список:", my_list)
+
+# 2
+print("2. Предпоследний элемент:", my_list[-2])
+print("   Элемент с индексом 0:", my_list[0])
+print("   Элемент с индексом 3:", my_list[3])
+
+# 3
+my_list[1] = "blueberry"
+print("3. После замены элемента с индексом 1:", my_list)
+
+# 4
+print("4. Элементы с индексами 2:5:", my_list[2:5])
+
+# 5
+my_list.append("melon")
+print("5. После добавления 'melon' в конец:", my_list)
+
+# 6
+my_list.insert(4, "peach")
+print("6. После вставки 'peach' на позицию 4:", my_list)
+
+# 7
+count_apple = my_list.count("apple")
+print(f"7. Количество 'apple' в списке: {count_apple}")
+
+# 8
+my_list_copy = my_list.copy()
+my_list_copy[0] = "pineapple"
+print("8. Оригинальный список:", my_list)
+print("   Копия списка после изменения:", my_list_copy)
+print("   Равны ли списки?", my_list == my_list_copy)
