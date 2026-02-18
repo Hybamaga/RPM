@@ -1,0 +1,168 @@
+# Базовый класс Транспортное средство
+class Vehicle:
+    """Базовый класс для всех транспортных средств"""
+    
+    def __init__(self, brand: str, model: str, year: int):
+        """
+        Конструктор базового класса
+        Передача данных: параметры brand, model, year передаются при создании объекта
+        и сохраняются в атрибуты экземпляра
+        """
+        self.brand = brand      # Данные передаются из параметра в атрибут
+        self.model = model      # Данные передаются из параметра в атрибут
+        self.year = year        # Данные передаются из параметра в атрибут
+        self._speed = 0         # Защищенный атрибут с начальным значением
+        
+    def start(self):
+        """Метод запуска транспортного средства"""
+        print(f"{self.brand} {self.model} запущен")
+        
+    def stop(self):
+        """Метод остановки"""
+        self._speed = 0
+        print(f"{self.brand} {self.model} остановлен")
+        
+    def get_info(self):
+        """Возвращает информацию о транспортном средстве"""
+        # Данные собираются из атрибутов класса и возвращаются
+        return f"{self.brand} {self.model}, {self.year} год"
+
+
+# Класс-наследник Автомобиль
+class Car(Vehicle):
+    """Класс автомобиля, наследуется от Vehicle"""
+    
+    def __init__(self, brand: str, model: str, year: int, fuel_type: str, doors: int):
+        """
+        Конструктор класса Car
+        Передача данных: 
+        - brand, model, year передаются в конструктор родителя через super()
+        - fuel_type и doors сохраняются в атрибуты экземпляра
+        """
+        # Передаем данные в родительский конструктор
+        super().__init__(brand, model, year)  # Данные передаются в базовый класс
+        self.fuel_type = fuel_type            # Данные из параметра в атрибут
+        self.doors = doors                     # Данные из параметра в атрибут
+        
+    def start(self):
+        """Переопределенный метод запуска"""
+        # Используем данные из родительского класса и добавляем свою логику
+        super().start()  # Вызов метода родителя
+        print(f"Тип топлива: {self.fuel_type}")
+        print(f"Количество дверей: {self.doors}")
+        
+    def get_info(self):
+        """Переопределенный метод получения информации"""
+        # Получаем базовую информацию от родителя и дополняем её
+        base_info = super().get_info()  # Данные возвращаются из родительского метода
+        return f"{base_info}, топливо: {self.fuel_type}, дверей: {self.doors}"
+
+
+# Класс-наследник Электромобиль
+class ElectricCar(Car):
+    """Класс электромобиля, наследуется от Car"""
+    
+    def __init__(self, brand: str, model: str, year: int, doors: int, 
+                 battery_capacity: float, range_km: int):
+        """
+        Конструктор ElectricCar
+        Передача данных: 
+        - Параметры передаются через цепочку наследования
+        - fuel_type для электромобиля всегда "Electric"
+        """
+        # Передаем данные в родительский конструктор Car
+        # fuel_type жестко задан как "Electric"
+        super().__init__(brand, model, year, "Electric", doors)
+        self.battery_capacity = battery_capacity  # Данные из параметра в атрибут
+        self.range_km = range_km                   # Данные из параметра в атрибут
+        
+    def start(self):
+        """Переопределенный метод запуска для электромобиля"""
+        super().start()
+        print(f"Емкость батареи: {self.battery_capacity} кВт⋅ч")
+        print(f"Запас хода: {self.range_km} км")
+        
+    def charge(self, minutes: int):
+        """Специфический метод для электромобиля"""
+        print(f"{self.brand} {self.model} заряжается {minutes} минут")
+        
+    def get_info(self):
+        """Полная информация об электромобиле"""
+        base_info = super().get_info()
+        return f"{base_info}, батарея: {self.battery_capacity} кВт⋅ч, запас хода: {self.range_km} км"
+
+
+# Другой класс-наследник Мотоцикл
+class Motorcycle(Vehicle):
+    """Класс мотоцикла, наследуется от Vehicle"""
+    
+    def __init__(self, brand: str, model: str, year: int, engine_cc: int, type: str):
+        """
+        Конструктор Motorcycle
+        Передача данных: brand, model, year в родительский класс,
+        engine_cc и type в собственные атрибуты
+        """
+        super().__init__(brand, model, year)
+        self.engine_cc = engine_cc  # Объем двигателя в куб. см
+        self.type = type            # Тип мотоцикла (спорт, круизер и т.д.)
+        
+    def start(self):
+        """Переопределенный метод запуска"""
+        super().start()
+        print(f"Объем двигателя: {self.engine_cc} куб.см")
+        print(f"Тип: {self.type}")
+        
+    def wheelie(self):
+        """Специфический метод для мотоцикла"""
+        print(f"{self.brand} {self.model} едет на заднем колесе!")
+        
+    def get_info(self):
+        base_info = super().get_info()
+        return f"{base_info}, объем: {self.engine_cc} куб.см, тип: {self.type}"
+
+
+# Демонстрация работы классов
+def demonstrate_classes():
+    print("=" * 50)
+    print("ДЕМОНСТРАЦИЯ РАБОТЫ КЛАССОВ НА PYTHON")
+    print("=" * 50)
+    
+    # Создание объектов с передачей данных в конструкторы
+    print("\n--- Создание обычного автомобиля ---")
+    # Данные передаются при создании объекта
+    car = Car("Toyota", "Camry", 2022, "Бензин", 4)
+    # Вызов методов с использованием данных объекта
+    car.start()
+    print(car.get_info())
+    
+    print("\n--- Создание электромобиля ---")
+    # Данные передаются при создании объекта электромобиля
+    tesla = ElectricCar("Tesla", "Model 3", 2023, 4, 75, 500)
+    tesla.start()
+    # Вызов специфического метода
+    tesla.charge(45)
+    print(tesla.get_info())
+    
+    print("\n--- Создание мотоцикла ---")
+    # Данные передаются при создании объекта мотоцикла
+    bike = Motorcycle("Harley-Davidson", "Street Glide", 2021, 1868, "Туристический")
+    bike.start()
+    bike.wheelie()
+    print(bike.get_info())
+    
+    print("\n--- Демонстрация полиморфизма ---")
+    # Создаем список разных транспортных средств
+    vehicles = [
+        Car("BMW", "X5", 2023, "Дизель", 5),
+        ElectricCar("Nissan", "Leaf", 2022, 5, 40, 270),
+        Motorcycle("Yamaha", "R1", 2023, 998, "Спортивный")
+    ]
+    
+    # Для каждого объекта вызываем общий метод get_info()
+    # Данные из каждого объекта возвращаются через метод
+    for vehicle in vehicles:
+        print(vehicle.get_info())
+
+
+if __name__ == "__main__":
+    demonstrate_classes()
