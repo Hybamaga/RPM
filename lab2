@@ -1,0 +1,398 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace StoreDemo
+{
+    // Базовый класс Товар
+    public class Product
+    {
+        // Свойства класса
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public int Quantity { get; set; }
+        private int Id { get; set; }
+        
+        // Конструктор базового класса
+        // Передача данных: параметры name, price, quantity при создании объекта
+        public Product(string name, decimal price, int quantity)
+        {
+            Name = name;        // Данные из параметра в свойство
+            Price = price;      // Данные из параметра в свойство
+            Quantity = quantity; // Данные из параметра в свойство
+            Id = GetHashCode();  // Уникальный идентификатор
+        }
+        
+        // Виртуальный метод расчета общей стоимости
+        public virtual decimal CalculateTotalPrice()
+        {
+            // Данные берутся из свойств
+            return Price * Quantity;
+        }
+        
+        // Метод уменьшения количества
+        public virtual bool ReduceQuantity(int amount)
+        {
+            if (Quantity >= amount)
+            {
+                Quantity -= amount;  // Изменение свойства
+                return true;
+            }
+            return false;
+        }
+        
+        // Виртуальный метод получения информации
+        public virtual string GetInfo()
+        {
+            return $"Товар: {Name}, Цена: {Price} руб., В наличии: {Quantity}";
+        }
+    }
+    
+    // Класс-наследник Продукты питания
+    public class FoodProduct : Product
+    {
+        // Свойства продуктов питания
+        public string ExpiryDate { get; set; }
+        public double Weight { get; set; }
+        public bool IsPerishable { get; set; }
+        
+        // Конструктор FoodProduct
+        public FoodProduct(string name, decimal price, int quantity,
+                          string expiryDate, double weight, bool isPerishable = true)
+            : base(name, price, quantity)  // Передача данных в базовый класс
+        {
+            ExpiryDate = expiryDate;    // Данные из параметра в свойство
+            Weight = weight;             // Данные из параметра в свойство
+            IsPerishable = isPerishable; // Данные из параметра в свойство
+        }
+        
+        // Переопределенный метод расчета стоимости
+        public override decimal CalculateTotalPrice()
+        {
+            decimal baseTotal = base.CalculateTotalPrice();  // Данные от родителя
+            return baseTotal * (decimal)Weight;  // Учитываем вес
+        }
+        
+        // Метод проверки свежести
+        public string CheckFreshness(string currentDate)
+        {
+            // Простое строковое сравнение для демонстрации
+            if (string.Compare(ExpiryDate, currentDate) >= 0)
+                return $"{Name} - свежий продукт";
+            else
+                return $"{Name} - просрочен!";
+        }
+        
+        // Переопределенный метод получения информации
+        public override string GetInfo()
+        {
+            string baseInfo = base.GetInfo();
+            return $"{baseInfo}, Срок годности: {ExpiryDate}, Вес: {Weight} кг";
+        }
+    }
+    
+    // Класс-наследник Электроника
+    public class ElectronicProduct : Product
+    {
+        // Свойства электроники
+        public string Brand { get; set; }
+        public int WarrantyMonths { get; set; }
+        public double PowerConsumption { get; set; }
+        
+        // Конструктор ElectronicProduct
+        public ElectronicProduct(string name, decimal price, int quantity,
+                                string brand, int warrantyMonths, double powerConsumption)
+            : base(name, price, quantity)
+        {
+            Brand = brand;                    // Данные из параметра в свойство
+            WarrantyMonths = warrantyMonths;   // Данные из параметра в свойство
+            PowerConsumption = powerConsumption; // Данные из параметра в свойство
+        }
+        
+        // Переопределенный метод расчета стоимости
+        public override decimal CalculateTotalPrice()
+        {
+            decimal baseTotal = base.CalculateTotalPrice();
+            decimal warrantyCost = baseTotal * 0.1m;  // 10% за гарантию
+            return baseTotal + warrantyCost;
+        }
+        
+        // Метод получения информации о гарантии
+        public string GetWarrantyInfo()
+        {
+            return $"Гарантия на {Brand} {Name}: {WarrantyMonths} месяцев";
+        }
+        
+        public override string GetInfo()
+        {
+            string baseInfo = base.GetInfo();
+            return $"{baseInfo}, Бренд: {Brand}, Гарантия: {WarrantyMonths} мес.";
+        }
+    }
+    
+    // Класс для элемента корзины
+    public class CartItem
+    {
+        public Product Product { get; set; }
+        public int Quantity { get; set; }
+        public decimal PriceAtAdd { get; set; }
+        
+        public CartItem(Product product, int quantity)
+        {
+            Product = product;          // Данные из параметра в свойство
+            Quantity = quantity;         // Данные из параметра в свойство
+            PriceAtAdd = product.Price;  // Фиксируем цену на момент добавления
+        }
+        
+        public decimal GetTotal()
+        {
+            return PriceAtAdd * Quantity;  // Данные из свойств
+        }
+    }
+    
+    // Класс Корзина покупок
+    public class ShoppingCart
+    {
+        public string CustomerName { get; set; }
+        private List<CartItem> Items { get; set; }
+        private decimal Total { get; set; }
+        
+        // Конструктор корзины
+        public ShoppingCart(string customerName)
+        {
+            CustomerName = customerName;  // Данные из параметра в свойство
+            Items = new List<CartItem>();
+            Total = 0;
+        }
+        
+        // Метод добавления товара
+        public bool AddItem(Product product, int quantity = 1)
+        {
+            if (product.Quantity >= quantity)
+            {
+                Items.Add(new CartItem(product, quantity));
+                product.ReduceQuantity(quantity);  // Данные передаются в метод
+                Console.WriteLine($"Товар {product.Name} добавлен в корзину");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"Недостаточно товара {product.Name} на складе");
+                return false;
+            }
+        }
+        
+        // Метод расчета общей стоимости
+        public decimal CalculateTotal()
+        {
+            Total = 0;
+            foreach (var item in Items)
+            {
+                Total += item.GetTotal();  // Данные от каждого элемента
+            }
+            return Total;
+        }
+        
+        // Метод оформления покупки
+        public Receipt Checkout()
+        {
+            decimal total = CalculateTotal();
+            
+            // Создаем чек с данными из корзины
+            var receipt = new Receipt
+            {
+                Customer = CustomerName,
+                Date = DateTime.Now,
+                Total = total,
+                Status = "completed"
+            };
+            
+            foreach (var item in Items)
+            {
+                receipt.Items.Add(new ReceiptItem
+                {
+                    Name = item.Product.Name,
+                    Quantity = item.Quantity,
+                    Price = item.PriceAtAdd,
+                    Total = item.GetTotal()
+                });
+            }
+            
+            Items.Clear();  // Очищаем корзину
+            return receipt;
+        }
+    }
+    
+    // Класс для элемента чека
+    public class ReceiptItem
+    {
+        public string Name { get; set; }
+        public int Quantity { get; set; }
+        public decimal Price { get; set; }
+        public decimal Total { get; set; }
+    }
+    
+    // Класс для чека
+    public class Receipt
+    {
+        public string Customer { get; set; }
+        public DateTime Date { get; set; }
+        public List<ReceiptItem> Items { get; set; } = new List<ReceiptItem>();
+        public decimal Total { get; set; }
+        public string Status { get; set; }
+    }
+    
+    // Класс Магазин
+    public class Store
+    {
+        public string Name { get; set; }
+        public string Address { get; set; }
+        private List<Product> Products { get; set; }
+        private List<Receipt> SalesHistory { get; set; }
+        
+        // Конструктор магазина
+        public Store(string name, string address)
+        {
+            Name = name;              // Данные из параметра в свойство
+            Address = address;         // Данные из параметра в свойство
+            Products = new List<Product>();
+            SalesHistory = new List<Receipt>();
+        }
+        
+        // Метод добавления товара
+        public void AddProduct(Product product)
+        {
+            Products.Add(product);  // Данные добавляются в список
+            Console.WriteLine($"Товар {product.Name} добавлен в ассортимент магазина {Name}");
+        }
+        
+        // Метод поиска товара
+        public Product FindProduct(string name)
+        {
+            // Поиск и возврат товара
+            return Products.FirstOrDefault(p => 
+                p.Name.ToLower().Contains(name.ToLower()));
+        }
+        
+        // Метод создания корзины
+        public ShoppingCart CreateCart(string customerName)
+        {
+            return new ShoppingCart(customerName);
+        }
+        
+        // Метод обработки покупки
+        public Receipt ProcessPurchase(ShoppingCart cart)
+        {
+            Receipt receipt = cart.Checkout();  // Получаем данные от корзины
+            SalesHistory.Add(receipt);          // Сохраняем в историю
+            Console.WriteLine($"Покупка оформлена! Сумма: {receipt.Total} руб.");
+            return receipt;
+        }
+        
+        // Метод получения общей суммы продаж
+        public decimal GetTotalSales()
+        {
+            decimal total = 0;
+            foreach (var sale in SalesHistory)
+            {
+                total += sale.Total;  // Суммируем данные из истории
+            }
+            return total;
+        }
+    }
+    
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("=".PadRight(60, '='));
+            Console.WriteLine("ДЕМОНСТРАЦИЯ РАБОТЫ КЛАССОВ МАГАЗИНА НА C#");
+            Console.WriteLine("=".PadRight(60, '='));
+            
+            // Создаем магазин
+            Console.WriteLine("\n--- Создание магазина ---");
+            var myStore = new Store("Вкусный Мир", "ул. Ленина, 10");
+            Console.WriteLine($"Магазин: {myStore.Name}");
+            Console.WriteLine($"Адрес: {myStore.Address}");
+            
+            // Создаем товары
+            Console.WriteLine("\n--- Создание товаров ---");
+            
+            // Продукты питания
+            var milk = new FoodProduct("Молоко", 80m, 50, "2024-12-31", 1.0, true);
+            var bread = new FoodProduct("Хлеб", 45m, 30, "2024-12-25", 0.5, true);
+            var cheese = new FoodProduct("Сыр", 400m, 20, "2025-01-15", 0.3, false);
+            
+            // Электроника
+            var laptop = new ElectronicProduct("Ноутбук", 50000m, 10, "HP", 24, 65);
+            var phone = new ElectronicProduct("Смартфон", 30000m, 15, "Samsung", 12, 15);
+            var tv = new ElectronicProduct("Телевизор", 45000m, 5, "LG", 36, 120);
+            
+            // Добавляем товары в магазин
+            Console.WriteLine("\n--- Добавление товаров в магазин ---");
+            myStore.AddProduct(milk);
+            myStore.AddProduct(bread);
+            myStore.AddProduct(cheese);
+            myStore.AddProduct(laptop);
+            myStore.AddProduct(phone);
+            myStore.AddProduct(tv);
+            
+            // Покупатель создает корзину
+            Console.WriteLine("\n--- Покупатель создает корзину ---");
+            var cart = myStore.CreateCart("Иван Петров");
+            
+            // Добавление товаров в корзину
+            Console.WriteLine("\n--- Добавление товаров в корзину ---");
+            
+            var foundMilk = myStore.FindProduct("Молоко");
+            if (foundMilk != null)
+                cart.AddItem(foundMilk, 2);
+            
+            var foundBread = myStore.FindProduct("Хлеб");
+            if (foundBread != null)
+                cart.AddItem(foundBread, 3);
+            
+            var foundPhone = myStore.FindProduct("Смартфон");
+            if (foundPhone != null)
+                cart.AddItem(foundPhone, 1);
+            
+            // Расчет стоимости корзины
+            Console.WriteLine("\n--- Расчет стоимости корзины ---");
+            decimal cartTotal = cart.CalculateTotal();
+            Console.WriteLine($"Текущая стоимость корзины: {cartTotal} руб.");
+            
+            // Оформление покупки
+            Console.WriteLine("\n--- Оформление покупки ---");
+            var receipt = myStore.ProcessPurchase(cart);
+            
+            // Вывод чека
+            Console.WriteLine("\n--- ЧЕК ---");
+            Console.WriteLine($"Покупатель: {receipt.Customer}");
+            Console.WriteLine($"Дата: {receipt.Date}");
+            Console.WriteLine("-".PadRight(40, '-'));
+            foreach (var item in receipt.Items)
+            {
+                Console.WriteLine($"{item.Name} x{item.Quantity} = {item.Total} руб.");
+            }
+            Console.WriteLine("-".PadRight(40, '-'));
+            Console.WriteLine($"ИТОГО: {receipt.Total} руб.");
+            
+            // Статистика продаж
+            Console.WriteLine("\n--- Статистика продаж ---");
+            decimal totalSales = myStore.GetTotalSales();
+            Console.WriteLine($"Общая сумма продаж: {totalSales} руб.");
+            
+            // Информация о товарах
+            Console.WriteLine("\n--- Информация о товарах в магазине ---");
+            // Здесь нужно получить список продуктов из магазина
+            // Для демонстрации создадим новый список
+            var allProducts = new List<Product> { milk, bread, cheese, laptop, phone, tv };
+            foreach (var product in allProducts)
+            {
+                Console.WriteLine(product.GetInfo());
+            }
+            
+            Console.ReadLine();
+        }
+    }
+}
