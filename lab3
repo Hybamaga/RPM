@@ -1,0 +1,91 @@
+// See https://aka.ms/new-console-template for more information
+using System;
+using Excel = Microsoft.Office.Interop.Excel;
+
+namespace ExcelReader
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+          
+            Excel.Application excelApp = null;
+            Excel.Workbook workbook = null;
+            Excel.Worksheet worksheet = null;
+            Excel.Range usedRange = null;
+
+            try
+            {
+                Console.WriteLine("Запускаю Excel...");
+                excelApp = new Excel.Application();
+                excelApp.Visible = true;
+
+                string filePath = @"C:\Users\1\Desktop\lab3.xlsx";
+                Console.WriteLine($"Открываю файл: {filePath}");
+                workbook = excelApp.Workbooks.Open(filePath);
+
+                worksheet = workbook.Worksheets[1];
+                Console.WriteLine($"Читаем лист: {worksheet.Name}");
+
+               
+                usedRange = worksheet.UsedRange;
+            
+                int rowCount = usedRange.Rows.Count;
+                int colCount = usedRange.Columns.Count;
+
+                Console.WriteLine($"Найдено строк: {rowCount}, столбцов: {colCount}");
+                Console.WriteLine("Данные на листе:");
+                Console.WriteLine("-----------------");
+
+              
+                for (int row = 1; row <= rowCount; row++)
+                {
+                    for (int col = 1; col <= colCount; col++)
+                    {
+                     
+                        Excel.Range cell = usedRange.Cells[row, col];
+
+                       
+                        object cellValue = cell.Value2;
+
+                        Console.Write(cellValue?.ToString() ?? "");
+
+                     
+                        if (col < colCount)
+                        {
+                            Console.Write("\t");
+                        }
+                    }
+                
+                    Console.WriteLine();
+                }
+                Console.WriteLine("-----------------");
+
+                Console.WriteLine("Нажми Enter для завершения...");
+                Console.ReadLine();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+                Console.WriteLine("Нажми Enter для завершения...");
+                Console.ReadLine();
+            }
+            finally
+            {
+                if (usedRange != null) System.Runtime.InteropServices.Marshal.ReleaseComObject(usedRange);
+                if (worksheet != null) System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
+                if (workbook != null)
+                {
+                    workbook.Close(false); // Закрыть книгу без сохранения
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+                }
+                if (excelApp != null)
+                {
+                    excelApp.Quit(); // Закрыть Excel
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+                }
+                Console.WriteLine("Ресурсы Excel освобождены.");
+            }
+        }
+    }
+}
