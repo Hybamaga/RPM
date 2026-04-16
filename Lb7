@@ -1,0 +1,87 @@
+//Сервер
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+using System.Linq;
+
+List<string> spisok = new() { "sand", "dend", "dend", "dend", "sand", "lock", "jond", "jond", "lond", "cold" };
+
+var builder = WebApplication.CreateBuilder();
+var app = builder.Build();
+
+app.MapGet("/api/spisok", () => spisok);
+
+app.MapGet("/api/spisok/{index}", (int index) =>
+{
+    if (index < 0 || index >= spisok.Count)
+        return Results.NotFound(new { message = "Индекс вне диапазона" });
+    return Results.Ok(spisok[index]);
+});
+
+app.MapPut("/api/spisok/{index}", (int index, UpdateRequest req) =>
+{
+    if (index < 0 || index >= spisok.Count)
+        return Results.NotFound(new { message = "Индекс вне диапазона" });
+    spisok[index] = req.Value;
+    return Results.Ok(spisok);
+});
+
+app.MapPost("/api/spisok/insert/{index}", (int index, InsertRequest req) =>
+{
+    if (index < 0 || index > spisok.Count)
+        return Results.NotFound(new { message = "Индекс вне диапазона" });
+    spisok.Insert(index, req.Value);
+    return Results.Ok(spisok);
+});
+
+app.MapDelete("/api/spisok/{index}", (int index) =>
+{
+    if (index < 0 || index >= spisok.Count)
+        return Results.NotFound(new { message = "Индекс вне диапазона" });
+    spisok.RemoveAt(index);
+    return Results.Ok(spisok);
+});
+
+app.MapGet("/api/spisok/copy", () =>
+{
+    var copy = new List<string>(spisok);
+    return Results.Ok(copy);
+});
+
+app.MapGet("/api/spisok/count/{value}", (string value) =>
+{
+    int count = spisok.Count(x => x == value);
+    return Results.Ok(new { value, count });
+});
+
+app.Run();
+
+record UpdateRequest(string Value);
+record InsertRequest(string Value);
+
+
+//Клиент
+using System.Net.Http.Json;
+
+HttpClient client = new() { BaseAddress = new Uri("http://localhost:5000") };
+
+var list = await client.GetFromJsonAsync<List<string>>("/api/spisok");
+Console.WriteLine("Список: " + string.Join(", ", list!));
+
+var item = await client.GetStringAsync("/api/spisok/1");
+Console.WriteLine("Элемент с индексом 1: " + item);
+
+await client.PutAsJsonAsync("/api/spisok/2", new { Value = "low" });
+Console.WriteLine("После замены индекса 2 на 'low'");
+
+await client.PostAsJsonAsync("/api/spisok/insert/3", new { Value = "front" });
+Console.WriteLine("После вставки 'front' в индекс 3");
+
+var copy = await client.GetFromJsonAsync<List<string>>("/api/spisok/copy");
+Console.WriteLine("Копия: " + string.Join(", ", copy!));
+
+var countResult = await client.GetFromJsonAsync<CountResponse>("/api/spisok/count/jond");
+Console.WriteLine($"Количество 'jond': {countResult!.count}");
+}
+
+record CountResponse(string value, int count);
