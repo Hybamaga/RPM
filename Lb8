@@ -1,0 +1,46 @@
+//Сервер
+using System;
+using System.IO.Pipes;
+
+class Server
+{
+    static void Main()
+    {
+        using (var pipe = new NamedPipeServerStream("MyPipe"))
+        {
+            Console.WriteLine("Сервер: ждём клиента...");
+            pipe.WaitForConnection();
+            Console.WriteLine("Сервер: клиент подключился");
+
+            byte[] data = System.Text.Encoding.UTF8.GetBytes("Привет от сервера!");
+            pipe.Write(data, 0, data.Length);
+
+            Console.WriteLine("Сервер: данные отправлены");
+        }
+        Console.ReadLine();
+    }
+}
+
+//Клиент
+using System;
+using System.IO.Pipes;
+
+class Client
+{
+    static void Main()
+    {
+        using (var pipe = new NamedPipeClientStream(".", "MyPipe", PipeDirection.In))
+        {
+            Console.WriteLine("Клиент: подключаюсь...");
+            pipe.Connect();
+            Console.WriteLine("Клиент: подключился");
+
+            byte[] buffer = new byte[256];
+            int bytesRead = pipe.Read(buffer, 0, buffer.Length);
+            string message = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+            Console.WriteLine($"Клиент: получил — {message}");
+        }
+        Console.ReadLine();
+    }
+}
